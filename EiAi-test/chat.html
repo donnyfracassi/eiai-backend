@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>My AI Chat Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; }
+    h1 { text-align: center; }
+    .chat-box { border: 1px solid #ddd; border-radius: 12px; padding: 16px; min-height: 300px; max-height: 500px; overflow-y: auto; background: #fefefe; }
+    .msg { margin: 8px 0; }
+    .user { font-weight: 600; }
+    .ai { background: #f3f3f3; border-radius: 8px; padding: 8px; }
+    .input-row { display: flex; margin-top: 16px; gap: 8px; }
+    input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+    button { padding: 10px 20px; border-radius: 8px; border: none; background: #0078d7; color: white; font-size: 16px; cursor: pointer; }
+    button:hover { background: #005fa3; }
+  </style>
+</head>
+<body>
+  <h1>AI Chat Assistant</h1>
+  <div class="chat-box" id="chat"></div>
+  <div class="input-row">
+    <input id="message" placeholder="Type your message..." />
+    <button id="send">Send</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("message");
+    const sendBtn = document.getElementById("send");
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = "msg " + sender;
+      msg.textContent = (sender === "user" ? "You: " : "AI: ") + text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+
+      const res = await fetch("http://127.0.0.1:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+
+      const data = await res.json();
+      if (data.reply) {
+        addMessage(data.reply, "ai");
+      } else {
+        addMessage("Error: " + (data.error || "Unknown error"), "ai");
+      }
+    }
+
+    sendBtn.onclick = sendMessage;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+  </script>
+</body>
+</html>
