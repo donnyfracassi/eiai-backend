@@ -6,41 +6,32 @@ from openai import OpenAI
 app = Flask(__name__)
 CORS(app)
 
-def _get_key():
+def get_openai_key():
+    # Single source of truth for both /health and /chat
     v = os.getenv("OPENAI_API_KEY")
     return v.strip() if v and v.strip() else None
 
 def get_client():
-    k = _get_key()
-    # TEMP: allow header override for testing
-    if not k:
+    key = get_openai_key()
+    # optional: allow a temporary header override for testing
+    if not key:
         hdr = request.headers.get("x-openai-key")
         if hdr and hdr.strip():
-            k = hdr.strip()
-    return OpenAI(api_key=k) if k else None
+            key = hdr.strip()
+    return OpenAI(api_key=key) if key else None
 
 @app.route("/")
 def root():
     return jsonify({"ok": True, "message": "Backend is running"})
 
-# shows whether OPENAI_API_KEY is present, plus length only (no value)
 @app.route("/health")
 def health():
-    v = os.getenv("OPENAI_API_KEY")
-    present = bool(v and v.strip())
-    preview = (f"len={len(v.strip())}" if present else None)
+    key = get_openai_key()
     return jsonify({
         "ok": True,
-        "openai_key_present": present,
-        "preview": preview
+        "openai_key_present": bool(key),
+        "openai_key_len": len(key) if key else None
     })
-
-# lists env var NAMES only (no secrets), so we can confirm the key name exists
-@app.route("/debug/env")
-def debug_env():
-    keys = sorted(os.environ.keys())
-    # don’t return values; only names
-    return jsonify({"keys": keys})
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -53,13 +44,17 @@ def chat():
     if not user_message:
         return jsonify({"error": "Missing 'message'"}), 400
 
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": user_message}],
-        temperature=0.7,
-        max_tokens=400,
-    )
-    return jsonify({"reply": resp.choices[0].message.content})
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": user_message}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        return jsonify({"reply": resp.choices[0].message.content})
+    except Exception as e:
+        app.logger.exception("OpenAI call failed")
+        return jsonify({"error": f"OpenAI error: {e.__class__.__name__}: {e}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
