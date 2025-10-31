@@ -1,0 +1,152 @@
+[
+  {
+    "category": "Male Entertainment",
+    "shows": [
+      {
+        "name": "Boxer Hunk Show",
+        "price": 200,
+        "description": "3 song choreographed strip-tease."
+      },
+      {
+        "name": "G-String Hunk Show",
+        "price": 250,
+        "description": "4 song choreographed strip-tease."
+      },
+      {
+        "name": "Double The Hunk",
+        "price": 450,
+        "description": "Two hunks sandwich her! Double G-string strip-tease."
+      },
+      {
+        "name": "Beach Towel Show",
+        "price": 300,
+        "description": "4 song choreographed strip-tease with beach towel theme."
+      },
+      {
+        "name": "G-string Party Host",
+        "price": 250,
+        "description": "G-string waiter caters to guests. $250 first hour, $125 each additional."
+      },
+      {
+        "name": "Boxer Party Host",
+        "price": 200,
+        "description": "Hunk in boxers caters to guests. $200 first hour, $75 each additional."
+      },
+      {
+        "name": "Party Host",
+        "price": 150,
+        "description": "Shirtless waiter caters to guests. $150 first hour, $75 each additional."
+      },
+      {
+        "name": "Buff Bartender",
+        "price": 200,
+        "description": "Shirtless bartender for parties. $200 first hour, $75 each additional."
+      },
+      {
+        "name": "Men in Motion Party Appeteazer",
+        "price": 300,
+        "description": "Includes 2 Hunks, a Boxer Party Host, and a Single G-String Hunk show."
+      },
+      {
+        "name": "Men in Motion Double the Hunk",
+        "price": 350,
+        "description": "Double the Hunk Sandwich Her G-string duo show."
+      },
+      {
+        "name": "Men in Motion Triple the Hunk",
+        "price": 500,
+        "description": "Three Hunks G-string show with surprise costume."
+      },
+      {
+        "name": "Men in Motion Bachelorette’s Delight",
+        "price": 500,
+        "description": "Includes 3 Hunks, 1-hour Boxer Party Host, and a Double the Hunk show."
+      },
+      {
+        "name": "Men in Motion All Male Revue",
+        "price": null,
+        "description": "Full revue show with 5 hunks. Perfect for nightclubs and large events."
+      }
+    ]
+  },
+  {
+    "category": "Female Entertainment",
+    "shows": [
+      {
+        "name": "Single Girl Show",
+        "price": 250,
+        "description": "5 song striptease, perfect for bachelor or guys night."
+      },
+      {
+        "name": "Girlie Girl Intimate Duo",
+        "price": 450,
+        "description": "2 Girl on Girl nude show, 5 song set."
+      },
+      {
+        "name": "Girlie Girl Tantalizing Trio",
+        "price": 650,
+        "description": "3 Girl on Girl nude show, 5 song set."
+      },
+      {
+        "name": "Bachelor Party Bash (4 Girls)",
+        "price": 800,
+        "description": "4 Girl on Girl nude show, 5 song set, bachelor and divorce parties."
+      },
+      {
+        "name": "Party Appeteazer (2 Girls)",
+        "price": 350,
+        "description": "2 Dream Girls™, 1-hour Bikini Hostess, and 5-song show with party games."
+      },
+      {
+        "name": "Trio Party Bash (3 Girls)",
+        "price": 550,
+        "description": "3 Dream Girls™, 1-hour Bikini Hostess, 5-song duo show and games."
+      },
+      {
+        "name": "Bachelor Party Appeteazer (4 Girls)",
+        "price": 800,
+        "description": "4 Dream Girls™, Bikini Hostess, Bartender, 5-song girl-on-girl show."
+      },
+      {
+        "name": "Bachelor Party Bash (4 Girls)",
+        "price": 1000,
+        "description": "4 Dream Girls™, Bikini Hostess, Single Girl + Girl on Girl show."
+      },
+      {
+        "name": "Your Own Private Strip Club",
+        "price": null,
+        "description": "Custom Dream Girls™ packages, fully customizable pricing."
+      },
+      {
+        "name": "Bikini Hostess",
+        "price": 200,
+        "description": "Gorgeous hostess. $200 first hour, $100 each additional."
+      },
+      {
+        "name": "Shot Thot",
+        "price": 200,
+        "description": "Sexy shot girl. $200 first hour, $100 each additional."
+      },
+      {
+        "name": "Dream Girl Bartender",
+        "price": 250,
+        "description": "Barmaid for parties. $250 first hour, $125 each additional."
+      },
+      {
+        "name": "Topless Hostess",
+        "price": 250,
+        "description": "Topless hostess to serve and mingle. $250 first hour, $125 each additional."
+      },
+      {
+        "name": "Raffle Lap Dances",
+        "price": null,
+        "description": "Add raffle lap dances to any show — great for fundraising or fun!"
+      },
+      {
+        "name": "Wild Side Exotic Acts",
+        "price": null,
+        "description": "Interactive acts such as whipped cream, body drench, chocolate peaks, spanking, and more."
+      }
+    ]
+  }
+]
