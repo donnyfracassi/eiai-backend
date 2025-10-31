@@ -214,12 +214,13 @@ def chat():
     faq_hits = _faq_top(msg, k=3)
     pricing_hits = _pricing_top(msg, k=3) if looks_like_pricing(msg) else []
 
-    # Build context blocks
+    # Build context blocks (FIXED)
     faq_ctx = "\n\n".join([f"Q: {it['q']}\nA: {it['a']}" for it in faq_hits]) if faq_hits else ""
     pr_ctx = "\n\n".join([
-        f"Title: {it['title']}\nCategory: {it['category']}\n"
-        f"Price: {'$'+str(it['price']) if it['price'] not in (None, '') else 'Custom'}\n"
-        f"Details: {it['desc']}"
+        f"Title: {row['title']}\nCategory: {row['category']}\n"
+        f"Price: {'$'+str(row['price']) if row['price'] not in (None, '') else 'Custom'}\n"
+        f"Details: {row['desc']}"
+        for row in pricing_hits
     ]) if pricing_hits else ""
 
     ctx_parts = []
