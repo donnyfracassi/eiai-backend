@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>Chat Endpoint Test (with Memory)</h2>
+    <textarea id="msg" rows="3" cols="60" placeholder="Enter message..."></textarea><br>
+    <button onclick="send()">Send</button>
+    <button onclick="clearMemory()">Clear Chat Memory</button>
+    <pre id="res" style="white-space:pre-wrap;border:1px solid #ccc;padding:8px;margin-top:8px"></pre>
+
+    <script>
+      // ---------- Session Memory Helper ----------
+      const SESSION_KEY = "chat_session_id";
+      function getSessionId() {
+        let v = localStorage.getItem(SESSION_KEY);
+        if (!v) {
+          v = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
+          localStorage.setItem(SESSION_KEY, v);
+        }
+        return v;
+      }
+
+      async function send() {
+        const out = document.getElementById('res');
+        const msg = document.getElementById('msg').value;
+        if (!msg.trim()) {
+          out.textContent = "Please enter a message first.";
+          return;
+        }
+
+        out.textContent = "Sending...";
+        try {
+          const res = await fetch("https://eiai-backend.onrender.com/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: msg, session_id: getSessionId() })
+          });
+          const text = await res.text();
+          try {
+            out.textContent = `HTTP ${res.status}\n` + JSON.stringify(JSON.parse(text), null, 2);
+          } catch {
+            out.textContent = `HTTP ${res.status}\n` + text;
+          }
+        } catch (e) {
+          out.textContent = `Network error (maybe CORS if local file):\n${e}`;
+        }
+      }
+
+      // ---------- Clear Memory ----------
+      async function clearMemory() {
+        const out = document.getElementById('res');
+        out.textContent = "Clearing chat memory...";
+        try {
+          const res = await fetch("https://eiai-backend.onrender.com/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: getSessionId() })
+          });
+          const text = await res.text();
+          localStorage.removeItem(SESSION_KEY);
+          try {
+            out.textContent = `Memory cleared.\nHTTP ${res.status}\n` + JSON.stringify(JSON.parse(text), null, 2);
+          } catch {
+            out.textContent = `Memory cleared.\nHTTP ${res.status}\n` + text;
+          }
+        } catch (e) {
+          out.textContent = `Error clearing memory:\n${e}`;
+        }
+      }
+    </script>
+  </body>
+</html>
