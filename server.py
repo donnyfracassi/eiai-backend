@@ -1,24 +1,38 @@
-import os
+# server.py
+import os, json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
+import redis
 
 app = Flask(__name__)
 CORS(app)
 
-def get_openai_key():
-    # Single source of truth for both /health and /chat
-    v = os.getenv("OPENAI_API_KEY")
-    return v.strip() if v and v.strip() else None
+CHAT_MODEL = "gpt-4o-mini"
+MAX_TURNS = 12                   # keep last 12 user+assistant pairs
+SESSION_TTL_SECONDS = 7*24*3600  # 7 days of inactivity
 
-def get_client():
-    key = get_openai_key()
-    # optional: allow a temporary header override for testing
-    if not key:
-        hdr = request.headers.get("x-openai-key")
-        if hdr and hdr.strip():
-            key = hdr.strip()
-    return OpenAI(api_key=key) if key else None
+# --- OpenAI client ---
+def get_openai():
+    key = os.getenv("OPENAI_API_KEY")
+    return OpenAI(api_key=key.strip()) if key and key.strip() else None
+
+# --- Redis client (optional until REDIS_URL set) ---
+r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True) if os.getenv("REDIS_URL") else None
+def _rk(sid): return f"chat:history:{sid}"
+
+def load_history(sid: str):
+    if not (r and sid): return []
+    raw = r.get(_rk(sid))
+    if not raw: return []
+    try: return json.loads(raw)
+    except: return []
+
+def save_history(sid: str, msgs):
+    if not (r and sid): return
+    trimmed = msgs[-(MAX_TURNS*2):]  # user+assistant messages only
+    r.set(_rk(sid), json.dumps(trimmed))
+    r.expire(_rk(sid), SESSION_TTL_SECONDS)
 
 @app.route("/")
 def root():
@@ -26,35 +40,67 @@ def root():
 
 @app.route("/health")
 def health():
-    key = get_openai_key()
     return jsonify({
         "ok": True,
-        "openai_key_present": bool(key),
-        "openai_key_len": len(key) if key else None
+        "openai_key_present": bool(os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_API_KEY").strip()),
+        "redis_present": bool(r is not None)
     })
+
+@app.route("/reset", methods=["POST"])
+def reset():
+    data = request.get_json(force=True) or {}
+    sid = (data.get("session_id") or "").strip()
+    if not sid:
+        return jsonify({"ok": False, "error": "Missing session_id"}), 400
+    if r:
+        r.delete(_rk(sid))
+    return jsonify({"ok": True})
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    client = get_client()
+    client = get_openai()
     if client is None:
-        return jsonify({"error": "Server missing OPENAI_API_KEY (or x-openai-key header)"}), 500
+        return jsonify({"error": "Server missing OPENAI_API_KEY"}), 500
 
     data = request.get_json(force=True) or {}
-    user_message = (data.get("message") or "").strip()
-    if not user_message:
+    msg = (data.get("message") or "").strip()
+    sid = (data.get("session_id") or "").strip()
+
+    if not msg:
         return jsonify({"error": "Missing 'message'"}), 400
+
+    # Build conversation
+    messages = [{
+        "role": "system",
+        "content": ("You are a helpful website assistant. Use conversation context to stay consistent. "
+                    "If you don’t know, say so briefly and suggest contacting support.")
+    }]
+
+    # Load prior turns for this session
+    history = load_history(sid)  # list of {role, content}
+    messages.extend(history)
+
+    # Add the new user message
+    messages.append({"role": "user", "content": msg})
 
     try:
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": user_message}],
-            temperature=0.7,
-            max_tokens=200
+            model=CHAT_MODEL,
+            messages=messages,
+            temperature=0.5,
+            max_tokens=300
         )
-        return jsonify({"reply": resp.choices[0].message.content})
+        reply = resp.choices[0].message.content
     except Exception as e:
         app.logger.exception("OpenAI call failed")
-        return jsonify({"error": f"OpenAI error: {e.__class__.__name__}: {e}"}), 500
+        return jsonify({"error": f"OpenAI error: {e}"}), 500
+
+    # Save updated history (only user/assistant, not system)
+    new_hist = [m for m in messages if m["role"] in ("user","assistant")]
+    new_hist.append({"role": "assistant", "content": reply})
+    save_history(sid, new_hist)
+
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
